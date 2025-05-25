@@ -6,15 +6,9 @@ const User = new mongoose.Schema(
             type: String,
             required: [true, "required"],
             unique: [true, "exist"],
-            trim: true,
-            lowercase: true
         },
         email:{
             type: String,
-            required: [true, "required"],
-            unique: [true, "exist"],
-            trim: true,
-            lowercase: true
         },
         password:{
             type: String,
