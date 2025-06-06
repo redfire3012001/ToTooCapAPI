@@ -97,7 +97,10 @@ const googleAuthRedirect = (req, res) => {
     `redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&` +
     `response_type=code&` +
     `scope=profile email`;
-  res.redirect(url);
+  res.status(200).json({
+    success: true,
+    url,
+  });
 };
 
 const googleAuthCallback = async (req, res) => {
@@ -130,7 +133,10 @@ const googleAuthCallback = async (req, res) => {
     let user = await User.findOne({ email });
     if (!user) {
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(Math.floor(Math.random() * 1000).toString(), salt);
+      const hashedPassword = await bcrypt.hash(
+        Math.floor(Math.random() * 1000).toString(),
+        salt
+      );
       user = new User({
         username: name + Math.floor(Math.random() * 1000),
         email,
@@ -196,11 +202,10 @@ const getLoginUser = async (req, res) => {
     if (!userId) {
       return res.status(404).json({
         success: false,
-        message:
-          "Please Login",
+        message: "Please Login",
       });
     }
-    const user = await User.findOne({_id:userId})
+    const user = await User.findOne({ _id: userId });
     res.status(200).json({
       success: true,
       data: user,
@@ -217,13 +222,9 @@ const updateUser = async (req, res) => {
   try {
     const newUser = req.body;
     const userId = req.userInfo.userId;
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      newUser,
-      {
-        new: true,
-      }
-    );
+    const updatedUser = await User.findByIdAndUpdate(userId, newUser, {
+      new: true,
+    });
 
     if (!updatedUser) {
       res.status(404).json({
@@ -260,8 +261,6 @@ const checkauthentication = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   registerUser,
   loginUser,
@@ -270,5 +269,5 @@ module.exports = {
   checkauthentication,
   getAllUsers,
   getLoginUser,
-  updateUser
+  updateUser,
 };
