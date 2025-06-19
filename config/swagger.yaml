@@ -1,0 +1,473 @@
+openapi: 3.0.0
+info:
+  title: Your API Name
+  version: 1.0.0
+  description: API documentation for your application.
+servers:
+  - url: http://localhost:3000/ # Adjust port and base path if different
+    description: Development server
+security:
+  - bearerAuth: [] # This applies bearerAuth to all paths by default
+tags:
+  - name: Authentication
+    description: User authentication operations
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User registered successfully!
+        "400":
+          description: Bad request (e.g., user already exists, validation error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User already exist
+        "500":
+          description: Internal server error
+  /auth/login:
+    post:
+      summary: Authenticate a user and get an access token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged in successful
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        "400":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Invalid password!
+        "500":
+          description: Internal server error
+  /auth/google:
+    get:
+      summary: Redirect to Google for OAuth authentication
+      operationId: googleAuthRedirect
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Redirect URL successfully generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  url:
+                    type: string
+                    format: uri
+                    description: The Google OAuth authentication URL
+                    example: https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=profile%20email
+  /auth/google/callback:
+    get:
+      summary: Google OAuth callback handler
+      operationId: googleAuthCallback
+      tags:
+        - Authentication
+      parameters:
+        - in: query
+          name: code
+          schema:
+            type: string
+          required: true
+          description: Authorization code from Google
+      responses:
+        '200':
+          description: User successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged in successful
+                  accessToken:
+                    type: string
+                    description: JWT Access Token for subsequent requests
+        '400':
+          description: Bad request (e.g., authentication code missing, invalid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Authentication code missing
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Some error occured! Please try again
+  /auth/users:
+    get:
+      summary: Get all users
+      operationId: getAllUsers
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+      responses:
+        '200':
+          description: List of users fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Users fetched successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '404':
+          description: No users found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: No Users found in collection
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Some error occured! Please try again
+  /auth/loginUser:
+    get:
+      summary: Get the currently logged-in user's information
+      operationId: getLoginUser
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+      responses:
+        '200':
+          description: Logged-in user information fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Please Login
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Something went wrong! Please try again
+  /auth/updateUser:
+    put:
+      summary: Update the currently logged-in user's information
+      operationId: updateUser
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User updated successfully
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Something went wrong! Please try again
+
+          
+
+components:
+  securitySchemes:
+    bearerAuth: 
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+      description: Enter your JWT Bearer token in the format **Bearer &lt;token>**
+  schemas:
+    RegisterInput:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Unique username for the user
+          example: john_doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: MySecurePass123
+        phone:
+          type: number
+          description: User's phone number
+          example: 1234567890
+        address:
+          type: string
+          description: User's physical address
+          example: 123 Main St, City, Country
+        role:
+          type: string
+          description: Role of the user
+          enum: ["customer", "admin", "shop"]
+          default: "customer"
+          example: customer
+    LoginInput:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: User's username
+          example: john_doe
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: MySecurePass123
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The user's unique ID generated by MongoDB.
+          readOnly: true 
+        username:
+          type: string
+          description: Unique username for the user.
+          minLength: 1
+        email:
+          type: string
+          format: email
+          description: Unique email address for the user.
+        password:
+          type: string
+          description: User's password (hashed in database).
+          writeOnly: true 
+          minLength: 1
+        phone:
+          type: string 
+          description: User's phone number.
+        address:
+          type: string
+          description: User's physical address.
+        role:
+          type: string
+          enum: [customer, admin, shop]
+          default: customer
+          description: Role of the user, defaults to 'customer'.
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the user was created.
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time when the user was last updated.
+          readOnly: true
+      required: 
+        - username
+        - password
+      example:
+        _id: "60c72b2f9b1d8c001f8e4c7d"
+        username: "johndoe123"
+        email: "john.doe@example.com"
+        phone: "1234567890"
+        address: "123 Main St, Anytown"
+        role: "customer"
+        createdAt: "2023-10-27T10:00:00Z"
+        updatedAt: "2023-10-27T10:30:00Z"
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Optional new username.
+          minLength: 1
+        email:
+          type: string
+          format: email
+          description: Optional new email.
+        password:
+          type: string
+          description: Optional new password (consider strong password policies).
+          writeOnly: true
+        phone:
+          type: string
+          description: Optional new phone number.
+        address:
+          type: string
+          description: Optional new address.
+        role:
+          type: string
+          enum: [customer, admin, shop]
+          description: Optional new role.
+      example:
+        username: "jane_doe_updated"
+        email: "jane.doe.new@example.com"
+        phone: "0987654321"

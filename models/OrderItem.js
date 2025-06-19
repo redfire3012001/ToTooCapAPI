@@ -11,17 +11,17 @@ const OrderItem = new mongoose.Schema(
     order_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: [true, "required"],
+      required: true, 
     },
     prouct_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, "required"],
+      required: true, 
     },
     custom_design_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CustomDesign",
-      required: [true, "required"],
+      required: true, 
     },
   },
   { timestamps: true }

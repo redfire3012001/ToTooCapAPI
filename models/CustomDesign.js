@@ -4,8 +4,8 @@ const CustomDesign = new mongoose.Schema(
   {
     design_name: {
       type: String,
-      required: [true, "required"],
-      unique: [true, "exist"],
+      required: true, 
+      unique: true, 
     },
     color: {
       type: String,
@@ -18,16 +18,17 @@ const CustomDesign = new mongoose.Schema(
     },
     status: {
       type: Boolean,
+      required: true, 
     },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "required"],
+      required: true, 
     },
     base_product_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, "required"],
+      required: true, 
     }
   },
   { timestamps: true }

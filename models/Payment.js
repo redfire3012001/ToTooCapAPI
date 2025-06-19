@@ -17,7 +17,7 @@ const Payment = new mongoose.Schema(
     order_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: [true, "required"],
+      required: true,
     },
     
   },

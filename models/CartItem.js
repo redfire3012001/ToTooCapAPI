@@ -4,27 +4,30 @@ const CartItem = new mongoose.Schema(
   {
     quantity: {
       type: Number,
+      required: true,
     },
     unit_price: {
       type: Number,
+      required: true,
     },
     cart_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Cart",
-      required: [true, "required"],
+      required: true,
     },
     product_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, "required"],
     },
     custom_design_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CustomDesign",
-      required: [true, "required"],
-    }
+    },
   },
   { timestamps: true }
 );
+
+CartItem.index({ cart_id: 1, product_id: 1 }, { unique: true, sparse: true });
+CartItem.index({ cart_id: 1, custom_design_id: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model("CartItem", CartItem);

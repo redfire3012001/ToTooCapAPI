@@ -4,8 +4,8 @@ const Shop = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "required"],
-      unique: [true, "exist"],
+      required: true,
+      unique: true, 
     },
     platform: {
       type: String,
@@ -13,7 +13,7 @@ const Shop = new mongoose.Schema(
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "required"],
+      required: true, 
     }
   },
   { timestamps: true }

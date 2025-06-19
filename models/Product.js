@@ -4,17 +4,19 @@ const Product = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "required"],
-      unique: [true, "exist"],
+      required: true,
+      unique: true, 
     },
     description: {
       type: String,
     },
     price: {
       type: Number,
+      required: true,
     },
     stock_quantity: {
       type: Number,
+      required: true,
     },
     image_url: {
       type: String,
@@ -22,7 +24,7 @@ const Product = new mongoose.Schema(
     category_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      required: [true, "required"],
+      required: true,
     },
   },
   { timestamps: true }

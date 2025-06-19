@@ -2,11 +2,20 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const crypto = require("crypto");
 require("dotenv").config();
 
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
   try {
     const { username, email, password, phone, address, role } = req.body;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format.",
+      });
+    }
 
     const checkExistingUser = await User.findOne({ username });
     if (checkExistingUser) {
@@ -33,16 +42,12 @@ const registerUser = async (req, res) => {
       success: true,
       message: "User registered successfully!",
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured! Please try again",
-    });
+  } catch (e) {
+    next(e);
   }
 };
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
@@ -81,16 +86,12 @@ const loginUser = async (req, res) => {
       message: "Logged in successful",
       accessToken,
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured! Please try again",
-    });
+  } catch (e) {
+    next(e);
   }
 };
 
-const googleAuthRedirect = (req, res) => {
+const googleAuthRedirect = (req, res, next) => {
   const url =
     `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${process.env.CLIENT_ID}&` +
@@ -103,7 +104,7 @@ const googleAuthRedirect = (req, res) => {
   });
 };
 
-const googleAuthCallback = async (req, res) => {
+const googleAuthCallback = async (req, res, next) => {
   const { code } = req.query;
   if (!code) {
     return res.status(400).json({
@@ -134,11 +135,11 @@ const googleAuthCallback = async (req, res) => {
     if (!user) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(
-        Math.floor(Math.random() * 1000).toString(),
+        crypto.randomBytes(16).toString("hex"),
         salt
       );
       user = new User({
-        username: name + Math.floor(Math.random() * 1000),
+        username: "Google: " + name,
         email,
         password: hashedPassword,
         role: "customer",
@@ -163,40 +164,53 @@ const googleAuthCallback = async (req, res) => {
       message: "Logged in successful",
       accessToken,
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured! Please try again",
-    });
-  }
-};
-
-const getAllUsers = async (req, res) => {
-  try {
-    const allUsers = await User.find({});
-    if (allUsers?.length > 0) {
-      res.status(200).json({
-        success: true,
-        message: "List of Users fetched successfully",
-        data: allUsers,
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: "No Users found in collection",
-      });
-    }
   } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured! Please try again",
-    });
+    next(e);
   }
 };
 
-const getLoginUser = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
+  try {
+    const currentPage = parseInt(req.query.currentPage) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sortBy = req.query.sortBy || "createdAt";
+    const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
+    const searchTerm = req.query.searchTerm;
+
+    const skip = (currentPage - 1) * limit;
+    let query = {};
+    if (searchTerm) {
+      query = {
+        $or: [
+          { username: { $regex: searchTerm, $options: "i" } },
+          { email: { $regex: searchTerm, $options: "i" } },
+        ],
+      };
+    }
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder;
+
+    const allUsers = await User.find(query)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      message: "List of Users fetched successfully",
+      currentPage: currentPage,
+      totalPages: totalPages,
+      totalUsers: totalUsers,
+      data: allUsers,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const getLoginUser = async (req, res, next) => {
   try {
     const userId = req.userInfo.userId;
     if (!userId) {
@@ -211,53 +225,75 @@ const getLoginUser = async (req, res) => {
       data: user,
     });
   } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong! Please try again",
-    });
+    next(e);
   }
 };
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
-    const newUser = req.body;
-    const userId = req.userInfo.userId;
-    const updatedUser = await User.findByIdAndUpdate(userId, newUser, {
-      new: true,
-    });
+    const { username, email, password, phone, address, role } = req.body;
+    const userId = req.params.id;
 
-    if (!updatedUser) {
-      res.status(404).json({
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
         success: false,
-        message: "User Not Found",
+        message: "Invalid email format.",
       });
     }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username, email, password: hashedPassword, phone, address, role },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found with this id",
+      });
+    }
     res.status(200).json({
       success: true,
       message: "User updated successfully",
       data: updatedUser,
     });
   } catch (e) {
-    console.log(e);
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong! Please try again",
-    });
+    next(e);
   }
 };
-const checkauthentication = async (req, res) => {
+const checkauthentication = async (req, res, next) => {
   try {
     res.status(200).json({
       success: true,
       message: "check auth",
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured! Please try again",
+  } catch (e) {
+    next(e);
+  }
+};
+const deleteUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User is not found with this ID",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: deletedUser,
     });
+  } catch (e) {
+    next(e);
   }
 };
 
@@ -270,4 +306,5 @@ module.exports = {
   getAllUsers,
   getLoginUser,
   updateUser,
+  deleteUser,
 };

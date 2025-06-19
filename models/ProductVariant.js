@@ -4,8 +4,8 @@ const ProductVariant = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "required"],
-      unique: [true, "exist"],
+      required: true,
+      unique: true, 
     },
     platform: {
       type: String,
@@ -13,12 +13,12 @@ const ProductVariant = new mongoose.Schema(
     shop_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
-      required: [true, "required"],
+      required: true, 
     },
     product_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: [true, "required"],
+      required: true, 
     },
   },
   { timestamps: true }
