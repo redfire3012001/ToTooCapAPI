@@ -10,18 +10,34 @@ const getAllCustomDesign = async (req, res, next) => {
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
     const searchTerm = req.query.searchTerm;
+    const userName = req.query.userName;
+    const productName = req.query.productName;
 
-    const skip = (currentPage - 1) * limit;
     let query = {};
     if (searchTerm) {
-      query = {
-        $or: [
-          { design_name: { $regex: searchTerm, $options: "i" } },
-          { text: { $regex: searchTerm, $options: "i" } },
-          { color: { $regex: searchTerm, $options: "i" } },
-        ],
-      };
+      query.$or = [
+        { design_name: { $regex: searchTerm, $options: "i" } },
+        { text: { $regex: searchTerm, $options: "i" } },
+        { color: { $regex: searchTerm, $options: "i" } },
+      ];
+      // query = {
+      //   $or: [
+      //     { design_name: { $regex: searchTerm, $options: "i" } },
+      //     { text: { $regex: searchTerm, $options: "i" } },
+      //     { color: { $regex: searchTerm, $options: "i" } },
+      //   ],
+      // };
     }
+    if (productName) {
+      const product = await Product.findOne({ name: productName });
+      query.base_product_id = product._id;
+    }
+    if (userName) {
+      const user = await User.findOne({ username: userName });
+      query.user_id = user._id;
+    }
+
+    const skip = (currentPage - 1) * limit;
     const totalCustomDesigns = await CustomDesign.countDocuments(query);
     const totalPages = Math.ceil(totalCustomDesigns / limit);
     const sortObj = {};
@@ -158,6 +174,7 @@ const updateCustomDesign = async (req, res, next) => {
       { design_name, color, text, image_url, status, user_id, base_product_id },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedCustomDesign) {

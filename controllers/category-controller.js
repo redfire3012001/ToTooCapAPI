@@ -94,6 +94,7 @@ const updateCategory = async (req, res, next) => {
       { name, description },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedCategory) {

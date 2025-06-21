@@ -9,6 +9,8 @@ const productRoutes = require("./routes/product-routes");
 const shopRoutes = require("./routes/shop-routes");
 const categoryRoutes = require("./routes/category-routes");
 const customDesignRoutes = require("./routes/custom-design-routes");
+const orderRoutes = require("./routes/order-routes");
+const paymentRoutes = require("./routes/payment-routes");
 const errorMiddleware = require("./middleware/error-handling-middlewar");
 
 connectToDB();
@@ -25,6 +27,8 @@ app.use("/product", productRoutes);
 app.use("/shop", shopRoutes);
 app.use("/category", categoryRoutes);
 app.use("/customDesign", customDesignRoutes);
+app.use("/order", orderRoutes);
+app.use("/payment", paymentRoutes);
 
 app.use(errorMiddleware);
 

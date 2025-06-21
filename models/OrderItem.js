@@ -4,24 +4,24 @@ const OrderItem = new mongoose.Schema(
   {
     quantity: {
       type: Number,
+      required: true,
     },
     unit_price: {
       type: Number,
+      required: true,
     },
     order_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: true, 
+      required: true,
     },
     prouct_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: true, 
     },
     custom_design_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CustomDesign",
-      required: true, 
     },
   },
   { timestamps: true }

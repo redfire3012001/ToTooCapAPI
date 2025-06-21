@@ -11,18 +11,14 @@ const getAllCart = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
-    const searchTerm = req.query.searchTerm;
+    const userId = req.query.userId;
+
+    let query = {};
+    if (userId) {
+      query.user_id = userId;
+    }
 
     const skip = (currentPage - 1) * limit;
-    let query = {};
-    if (searchTerm) {
-      query = {
-        $or: [
-          { user_id: { $regex: searchTerm, $options: "i" } },
-          { email: { $regex: searchTerm, $options: "i" } },
-        ],
-      };
-    }
     const ToTalCarts = await Cart.countDocuments(query);
     const totalPages = Math.ceil(ToTalCarts / limit);
     const sortObj = {};
@@ -144,11 +140,13 @@ const deleteCart = async (req, res, next) => {
     const deletedCart = await Cart.findByIdAndDelete(cartId);
 
     if (!deletedCart) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Cart is not found with this ID",
       });
     }
+
+    await CartItem.deleteMany({ cart_id: deletedCart._id });
 
     res.status(200).json({
       success: true,
@@ -171,7 +169,6 @@ const getAllCartItemByCartId = async (req, res, next) => {
       });
     }
 
-
     const currentPage = parseInt(req.query.currentPage) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const sortBy = req.query.sortBy || "createdAt";
@@ -188,7 +185,7 @@ const getAllCartItemByCartId = async (req, res, next) => {
     //     ],
     //   };
     // }
-    const totalCartItems = await CartItem.countDocuments();
+    const totalCartItems = await CartItem.countDocuments({ cart_id: cartId });
     const totalPages = Math.ceil(totalCartItems / limit);
     const sortObj = {};
     sortObj[sortBy] = sortOrder;
@@ -330,10 +327,11 @@ const updateCartItemQuantityInCart = async (req, res, next) => {
       { quantity },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedCartItem) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "CartItem is not found with this ID",
       });
@@ -355,7 +353,7 @@ const deleteCartItemFromCart = async (req, res, next) => {
     const deletedCartItem = await CartItem.findByIdAndDelete(cartItemId);
 
     if (!deletedCartItem) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "CartItem is not found with this ID",
       });

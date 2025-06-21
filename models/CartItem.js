@@ -27,7 +27,5 @@ const CartItem = new mongoose.Schema(
   { timestamps: true }
 );
 
-CartItem.index({ cart_id: 1, product_id: 1 }, { unique: true, sparse: true });
-CartItem.index({ cart_id: 1, custom_design_id: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model("CartItem", CartItem);

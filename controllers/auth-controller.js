@@ -248,6 +248,7 @@ const updateUser = async (req, res, next) => {
       { username, email, password: hashedPassword, phone, address, role },
       {
         new: true,
+        runValidators: true,
       }
     );
 

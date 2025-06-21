@@ -1,17 +1,708 @@
 openapi: 3.0.0
 info:
-  title: Your API Name
+  title: User Authentication API
   version: 1.0.0
-  description: API documentation for your application.
+  description: API for user authentication, registration, and management.
 servers:
-  - url: http://localhost:3000/ # Adjust port and base path if different
-    description: Development server
-security:
-  - bearerAuth: [] # This applies bearerAuth to all paths by default
+  - url: http://localhost:3000/
+    description: Local server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the user.
+        username:
+          type: string
+          description: Unique username for the user.
+          example: john_doe
+        email:
+          type: string
+          format: email
+          description: Unique email address of the user.
+          example: john.doe@example.com
+        phone:
+          type: number
+          description: User's phone number.
+          example: 1234567890
+        address:
+          type: string
+          description: User's address.
+          example: 123 Main St
+        role:
+          type: string
+          enum: [ "customer", "admin", "shop" ]
+          default: "customer"
+          description: Role of the user.
+          example: customer
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was last updated.
+      required:
+        - username
+        - email
+        - password
+    RegisterUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Unique username for the user.
+          example: newuser
+        email:
+          type: string
+          format: email
+          description: Unique email address of the user.
+          example: newuser@example.com
+        password:
+          type: string
+          format: password
+          description: User's password.
+          example: StrongPassword123!
+        phone:
+          type: number
+          description: User's phone number.
+          example: 9876543210
+        address:
+          type: string
+          description: User's address.
+          example: 456 Oak Ave
+        role:
+          type: string
+          enum: [ "customer", "admin", "shop" ]
+          default: "customer"
+          description: Role of the user.
+          example: customer
+      required:
+        - username
+        - email
+        - password
+    LoginUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: User's username.
+          example: john_doe
+        password:
+          type: string
+          format: password
+          description: User's password.
+          example: MySecretPassword123
+      required:
+        - username
+        - password
+    AuthSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logged in successful
+        accessToken:
+          type: string
+          description: JWT access token.
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: User doesn't exists
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the category.
+          example: 60d5ec49f8c1b92c8c8e1d23
+        name:
+          type: string
+          description: The name of the category.
+          example: Electronics
+        description:
+          type: string
+          description: A brief description of the category.
+          example: Devices and gadgets.
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the category was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the category was last updated.
+      required:
+        - _id
+        - name
+    NewCategory:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the category.
+          example: Clothing
+        description:
+          type: string
+          description: A brief description of the category.
+          example: Apparel and accessories.
+      required:
+        - name
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the product.
+          example: 60d5ec49f8c1b92c8c8e1d24
+        name:
+          type: string
+          description: The name of the product.
+          example: Laptop Pro
+        description:
+          type: string
+          description: A detailed description of the product.
+          example: High-performance laptop with 16GB RAM and 512GB SSD.
+        price:
+          type: number
+          format: float
+          description: The price of the product.
+          example: 1200.00
+        stock_quantity:
+          type: integer
+          description: The number of units currently in stock.
+          example: 50
+        image_url:
+          type: string
+          description: URL to the product image.
+          example: https://example.com/images/laptop-pro.jpg
+        category_id:
+          type: string
+          description: The ID of the category this product belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d23
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the product was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the product was last updated.
+      required:
+        - _id
+        - name
+        - price
+        - stock_quantity
+        - category_id
+    NewProduct:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the product.
+          example: Smartphone X
+        description:
+          type: string
+          description: A detailed description of the product.
+          example: Latest model smartphone with advanced camera.
+        price:
+          type: number
+          format: float
+          description: The price of the product.
+          example: 799.99
+        stock_quantity:
+          type: integer
+          description: The number of units currently in stock.
+          example: 150
+        image_url:
+          type: string
+          description: URL to the product image.
+          example: https://example.com/images/smartphone-x.jpg
+        category_id:
+          type: string
+          description: The ID of the category this product belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d23
+      required:
+        - name
+        - price
+        - stock_quantity
+        - category_id
+    ProductVariant:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the product variant.
+          example: 60d5ec49f8c1b92c8c8e1d25
+        name:
+          type: string
+          description: The name of the product variant (e.g., "Red Large", "Blue Small").
+          example: Black 256GB
+        platform:
+          type: string
+          description: The platform associated with this variant (e.g., "Amazon", "Etsy").
+          example: Official Store
+        shop_id:
+          type: string
+          description: The ID of the shop where this variant is available.
+          example: 60d5ec49f8c1b92c8c8e1d26
+        product_id:
+          type: string
+          description: The ID of the parent product this variant belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d24
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the product variant was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the product variant was last updated.
+      required:
+        - _id
+        - name
+        - shop_id
+        - product_id
+    NewProductVariant:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the product variant (e.g., "Red Large", "Blue Small").
+          example: White 128GB
+        platform:
+          type: string
+          description: The platform associated with this variant (e.g., "Amazon", "Etsy").
+          example: Third-Party Seller
+        shop_id:
+          type: string
+          description: The ID of the shop where this variant is available.
+          example: 60d5ec49f8c1b92c8c8e1d26
+        product_id:
+          type: string
+          description: The ID of the parent product this variant belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d24
+      required:
+        - name
+        - shop_id
+        - product_id
+    CustomDesign:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the custom design.
+          example: 60d5ec49f8c1b92c8c8e1d27
+        design_name:
+          type: string
+          description: The name of the custom design.
+          example: My Awesome T-Shirt
+        color:
+          type: string
+          description: The main color of the design.
+          example: Blue
+        text:
+          type: string
+          description: Any custom text included in the design.
+          example: "Hello World!"
+        image_url:
+          type: string
+          description: URL to the image of the custom design.
+          example: https://example.com/designs/tshirt-blue.jpg
+        status:
+          type: boolean
+          description: The status of the custom design (e.g., active, pending review).
+          example: true
+        user_id:
+          type: string
+          description: The ID of the user who created this custom design.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        base_product_id:
+          type: string
+          description: The ID of the base product (e.g., a plain t-shirt) on which this design is applied.
+          example: 60d5ec49f8c1b92c8c8e1d24
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the custom design was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the custom design was last updated.
+      required:
+        - _id
+        - design_name
+        - status
+        - user_id
+        - base_product_id
+    NewCustomDesign:
+      type: object
+      properties:
+        design_name:
+          type: string
+          description: The name of the custom design.
+          example: Unique Mug Design
+        color:
+          type: string
+          description: The main color of the design.
+          example: White
+        text:
+          type: string
+          description: Any custom text included in the design.
+          example: "Coffee Lover"
+        image_url:
+          type: string
+          description: URL to the image of the custom design.
+          example: https://example.com/designs/mug-coffee.jpg
+        status:
+          type: boolean
+          description: The status of the custom design (e.g., active, pending review).
+          example: true
+        user_id:
+          type: string
+          description: The ID of the user who created this custom design.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        base_product_id:
+          type: string
+          description: The ID of the base product (e.g., a plain mug) on which this design is applied.
+          example: 60d5ec49f8c1b92c8c8e1d24
+      required:
+        - design_name
+        - status
+        - user_id
+        - base_product_id
+    Shop:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the shop.
+          example: 60d5ec49f8c1b92c8c8e1d29
+        name:
+          type: string
+          description: The name of the shop.
+          example: My Awesome Store
+        platform:
+          type: string
+          description: The platform where the shop is hosted (e.g., "Shopify", "Etsy", "WooCommerce").
+          example: Shopify
+        user_id:
+          type: string
+          description: The ID of the user who owns this shop.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the shop was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the shop was last updated.
+      required:
+        - _id
+        - name
+        - user_id
+    NewShop:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the shop.
+          example: Gadget Hub
+        platform:
+          type: string
+          description: The platform where the shop is hosted (e.g., "Shopify", "Etsy", "WooCommerce").
+          example: WooCommerce
+        user_id:
+          type: string
+          description: The ID of the user who owns this shop.
+          example: 60d5ec49f8c1b92c8c8e1d28
+      required:
+        - name
+        - user_id
+    Cart:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the cart.
+          example: 60d5ec49f8c1b92c8c8e1d29
+        user_id:
+          type: string
+          description: The ID of the user to whom this cart belongs.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the cart was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the cart was last updated.
+      required:
+        - _id
+        - user_id
+    NewCart:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: The ID of the user for whom to create the cart.
+          example: 60d5ec49f8c1b92c8c8e1d28
+      required:
+        - user_id
+    CartItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the cart item.
+          example: 60d5ec49f8c1b92c8c8e1d32
+        quantity:
+          type: integer
+          description: The quantity of the product or custom design in the cart.
+          example: 1
+        unit_price:
+          type: number
+          format: float
+          description: The unit price of the item at the time it was added to the cart.
+          example: 25.99
+        cart_id:
+          type: string
+          description: The ID of the cart this item belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d29
+        product_id:
+          type: string
+          description: The ID of the product if this cart item is a standard product.
+          example: 60d5ec49f8c1b92c8c8e1d30
+        custom_design_id:
+          type: string
+          description: The ID of the custom design if this cart item is a custom design.
+          example: 60d5ec49f8c1b92c8c8e1d31
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the cart item was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the cart item was last updated.
+      required:
+        - _id
+        - quantity
+        - unit_price
+        - cart_id
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the order.
+          example: 60d5ec49f8c1b92c8c8e1d35
+        order_date:
+          type: string
+          format: date-time
+          description: The date when the order was placed.
+          example: "2025-06-22T08:00:00.000Z"
+        status:
+          type: string
+          enum: [Done, Processing, Cancel]
+          description: The current status of the order.
+          example: Processing
+        total_amount:
+          type: number
+          format: float
+          description: The total amount of the order.
+          example: 120.50
+        shipping_address:
+          type: string
+          description: The shipping address for the order.
+          example: "123 Main Street, Anytown, USA"
+        payment_method:
+          type: string
+          enum: [Online, Physical]
+          description: The payment method used for the order.
+          example: Online
+        user_id:
+          type: string
+          description: The ID of the user who placed this order.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the order was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the order was last updated.
+      required:
+        - _id
+        - order_date
+        - status
+        - total_amount
+        - shipping_address
+        - payment_method
+        - user_id
+    NewOrder:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: The ID of the user placing the order.
+          example: 60d5ec49f8c1b92c8c8e1d28
+        order_date:
+          type: string
+          format: date
+          description: The desired date for the order (optional, defaults to tomorrow).
+          example: "2025-06-23"
+        shipping_address:
+          type: string
+          description: The shipping address for the order.
+          example: "789 Pine Lane, Othercity, USA"
+        payment_method:
+          type: string
+          enum: [Online, Physical]
+          description: The payment method for the order.
+          example: Online
+      required:
+        - user_id
+        - shipping_address
+        - payment_method
+    OrderItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the order item.
+          example: 60d5ec49f8c1b92c8c8e1d36
+        quantity:
+          type: integer
+          description: The quantity of the product or custom design in the order item.
+          example: 2
+        unit_price:
+          type: number
+          format: float
+          description: The unit price of the item at the time of order.
+          example: 50.00
+        order_id:
+          type: string
+          description: The ID of the order this item belongs to.
+          example: 60d5ec49f8c1b92c8c8e1d35
+        prouct_id: # Note: There's a typo in your model (prouct_id instead of product_id). Consider correcting this in your schema/model.
+          type: string
+          description: The ID of the product if this order item is a standard product.
+          example: 60d5ec49f8c1b92c8c8e1d30
+        custom_design_id:
+          type: string
+          description: The ID of the custom design if this order item is a custom design.
+          example: 60d5ec49f8c1b92c8c8e1d31
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the order item was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the order item was last updated.
+      required:
+        - _id
+        - quantity
+        - unit_price
+        - order_id
+    Payment:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier for the payment.
+          example: 60d5ec49f8c1b92c8c8e1d40
+        payment_date:
+          type: string
+          format: date-time
+          description: The date and time the payment was made.
+          nullable: true # As it can be null initially
+          example: "2025-06-22T10:30:00.000Z"
+        amount:
+          type: number
+          format: float
+          description: The amount of the payment.
+          example: 150.75
+        payment_status:
+          type: string
+          enum: [Processing, Done, Cancel]
+          description: The current status of the payment.
+          example: Processing
+        payment_method:
+          type: string
+          enum: [Online, Physical]
+          description: The method used for the payment.
+          example: Online
+        order_id:
+          type: string
+          description: The ID of the order associated with this payment.
+          example: 60d5ec49f8c1b92c8c8e1d35
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the payment record was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp when the payment record was last updated.
+      required:
+        - _id
+        - amount
+        - payment_status
+        - payment_method
+        - order_id
+    NewPayment:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: The ID of the order for which this payment is being created.
+          example: 60d5ec49f8c1b92c8c8e1d35
+      required:
+        - order_id
+  responses:
+    ErrorResponse:
+      description: An unexpected error occurred.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: An internal server error occurred.
+
 tags:
   - name: Authentication
-    description: User authentication operations
-
+    description: User registration, login, and Google OAuth
+  - name: User Management
+    description: Operations related to user data
+security: 
+  - bearerAuth: []
 paths:
   /auth/register:
     post:
@@ -23,9 +714,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisterInput"
+              $ref: '#/components/schemas/RegisterUser'
       responses:
-        "201":
+        '201':
           description: User registered successfully
           content:
             application/json:
@@ -38,24 +729,17 @@ paths:
                   message:
                     type: string
                     example: User registered successfully!
-        "400":
-          description: Bad request (e.g., user already exists, validation error)
+        '400':
+          description: Invalid input or user already exists
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: User already exist
-        "500":
+                $ref: '#/components/schemas/Error'
+        '500':
           description: Internal server error
   /auth/login:
     post:
-      summary: Authenticate a user and get an access token
+      summary: Login a user
       tags:
         - Authentication
       requestBody:
@@ -63,48 +747,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInput"
+              $ref: '#/components/schemas/LoginUser'
       responses:
-        "200":
+        '200':
           description: User logged in successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: Logged in successful
-                  accessToken:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        "400":
+                $ref: '#/components/schemas/AuthSuccess'
+        '400':
           description: Invalid credentials
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Invalid password!
-        "500":
+                $ref: '#/components/schemas/Error'
+        '500':
           description: Internal server error
   /auth/google:
     get:
-      summary: Redirect to Google for OAuth authentication
-      operationId: googleAuthRedirect
+      summary: Initiate Google OAuth flow
       tags:
         - Authentication
       responses:
         '200':
-          description: Redirect URL successfully generated
+          description: Redirect URL for Google authentication
           content:
             application/json:
               schema:
@@ -115,13 +781,12 @@ paths:
                     example: true
                   url:
                     type: string
-                    format: uri
-                    description: The Google OAuth authentication URL
-                    example: https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=profile%20email
+                    example: https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=profile email
+        '500':
+          description: Internal server error
   /auth/google/callback:
     get:
       summary: Google OAuth callback handler
-      operationId: googleAuthCallback
       tags:
         - Authentication
       parameters:
@@ -130,58 +795,61 @@ paths:
           schema:
             type: string
           required: true
-          description: Authorization code from Google
+          description: Authorization code from Google.
       responses:
         '200':
-          description: User successfully logged in
+          description: User logged in successfully via Google
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: Logged in successful
-                  accessToken:
-                    type: string
-                    description: JWT Access Token for subsequent requests
+                $ref: '#/components/schemas/AuthSuccess'
         '400':
-          description: Bad request (e.g., authentication code missing, invalid token)
+          description: Authentication code missing or invalid token
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Authentication code missing
+                $ref: '#/components/schemas/Error'
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Some error occured! Please try again
-  /auth/users:
+          description: Internal server error
+  /auth/user/get:
     get:
       summary: Get all users
-      operationId: getAllUsers
       tags:
-        - Authentication
+        - User Management
       security:
-        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of users per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+            enum: [ "createdAt", "username", "email" ]
+          description: Field to sort by.
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            default: desc
+            enum: [ "asc", "desc" ]
+          description: Sort order (ascending or descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term for username or email.
       responses:
         '200':
           description: List of users fetched successfully
@@ -196,47 +864,33 @@ paths:
                   message:
                     type: string
                     example: List of Users fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 5
+                  totalUsers:
+                    type: integer
+                    example: 42
                   data:
                     type: array
                     items:
                       $ref: '#/components/schemas/User'
-        '404':
-          description: No users found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: No Users found in collection
+        '401':
+          description: Unauthorized
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Some error occured! Please try again
-  /auth/loginUser:
+          description: Internal server error
+  /auth/user/get/loginUser:
     get:
-      summary: Get the currently logged-in user's information
-      operationId: getLoginUser
+      summary: Get details of the currently logged-in user
       tags:
-        - Authentication
+        - User Management
       security:
-        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+        - bearerAuth: []
       responses:
         '200':
-          description: Logged-in user information fetched successfully
+          description: Logged-in user data fetched successfully
           content:
             application/json:
               schema:
@@ -248,45 +902,57 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '404':
-          description: User not logged in
+          description: User not found (Please Login)
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Please Login
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Something went wrong! Please try again
-  /auth/updateUser:
+          description: Internal server error
+  /auth/user/update/{id}:
     put:
-      summary: Update the currently logged-in user's information
-      operationId: updateUser
+      summary: Update user details
       tags:
-        - Authentication
+        - User Management
       security:
-        - bearerAuth: [] # Assumes JWT authentication for this endpoint
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the user to update.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserUpdate'
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: updated_user
+                email:
+                  type: string
+                  format: email
+                  example: updated.user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: NewStrongPassword!
+                phone:
+                  type: number
+                  example: 1122334455
+                address:
+                  type: string
+                  example: 789 Pine Ln
+                role:
+                  type: string
+                  enum: [ "customer", "admin", "shop" ]
+                  example: customer
       responses:
         '200':
           description: User updated successfully
@@ -303,21 +969,178 @@ paths:
                     example: User updated successfully
                   data:
                     $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid email format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /auth/user/delete/{id}:
+    delete:
+      summary: Delete a user
+      tags:
+        - User Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID of the user to delete.
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
                   success:
                     type: boolean
-                    example: false
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /auth/checkauth:
+    get:
+      summary: Check authentication and role
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
-                    example: User Not Found
+                    example: check auth
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
         '500':
-          description: Internal Server Error
+          description: Internal server error
+  /category/get:
+    get:
+      summary: Get all categories with pagination, sorting, and search
+      tags:
+        - Categories
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of categories to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the categories by (e.g., 'name', 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term to filter categories by name or description.
+      responses:
+        200:
+          description: List of categories fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Categories fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalCategories:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /category/get/{id}:
+    get:
+      summary: Get a single category by ID
+      tags:
+        - Categories
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the category to retrieve.
+      responses:
+        200:
+          description: Category fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        404:
+          description: Category not found.
           content:
             application/json:
               schema:
@@ -328,146 +1151,2400 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: Something went wrong! Please try again
-
-          
-
-components:
-  securitySchemes:
-    bearerAuth: 
-      type: http
-      scheme: bearer
-      bearerFormat: JWT 
-      description: Enter your JWT Bearer token in the format **Bearer &lt;token>**
-  schemas:
-    RegisterInput:
-      type: object
-      required:
-        - username
-        - password
-      properties:
-        username:
-          type: string
-          description: Unique username for the user
-          example: john_doe
-        email:
-          type: string
-          format: email
-          description: User's email address
-          example: john.doe@example.com
-        password:
-          type: string
-          format: password
-          description: User's password
-          example: MySecurePass123
-        phone:
-          type: number
-          description: User's phone number
-          example: 1234567890
-        address:
-          type: string
-          description: User's physical address
-          example: 123 Main St, City, Country
-        role:
-          type: string
-          description: Role of the user
-          enum: ["customer", "admin", "shop"]
-          default: "customer"
-          example: customer
-    LoginInput:
-      type: object
-      required:
-        - username
-        - password
-      properties:
-        username:
-          type: string
-          description: User's username
-          example: john_doe
-        password:
-          type: string
-          format: password
-          description: User's password
-          example: MySecurePass123
-    User:
-      type: object
-      properties:
-        _id:
-          type: string
-          description: The user's unique ID generated by MongoDB.
-          readOnly: true 
-        username:
-          type: string
-          description: Unique username for the user.
-          minLength: 1
-        email:
-          type: string
-          format: email
-          description: Unique email address for the user.
-        password:
-          type: string
-          description: User's password (hashed in database).
-          writeOnly: true 
-          minLength: 1
-        phone:
-          type: string 
-          description: User's phone number.
-        address:
-          type: string
-          description: User's physical address.
-        role:
-          type: string
-          enum: [customer, admin, shop]
-          default: customer
-          description: Role of the user, defaults to 'customer'.
-        createdAt:
-          type: string
-          format: date-time
-          description: The date and time when the user was created.
-          readOnly: true
-        updatedAt:
-          type: string
-          format: date-time
-          description: The date and time when the user was last updated.
-          readOnly: true
-      required: 
-        - username
-        - password
-      example:
-        _id: "60c72b2f9b1d8c001f8e4c7d"
-        username: "johndoe123"
-        email: "john.doe@example.com"
-        phone: "1234567890"
-        address: "123 Main St, Anytown"
-        role: "customer"
-        createdAt: "2023-10-27T10:00:00Z"
-        updatedAt: "2023-10-27T10:30:00Z"
-    UserUpdate:
-      type: object
-      properties:
-        username:
-          type: string
-          description: Optional new username.
-          minLength: 1
-        email:
-          type: string
-          format: email
-          description: Optional new email.
-        password:
-          type: string
-          description: Optional new password (consider strong password policies).
-          writeOnly: true
-        phone:
-          type: string
-          description: Optional new phone number.
-        address:
-          type: string
-          description: Optional new address.
-        role:
-          type: string
-          enum: [customer, admin, shop]
-          description: Optional new role.
-      example:
-        username: "jane_doe_updated"
-        email: "jane.doe.new@example.com"
-        phone: "0987654321"
+                    example: Category with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /category/add:
+    post:
+      summary: Add a new category
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCategory'
+      responses:
+        201:
+          description: Category added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Category added successfully
+                  data:
+                    $ref: '#/components/schemas/Category'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /category/update/{id}:
+    put:
+      summary: Update an existing category
+      tags:
+        - Categories
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the category to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCategory' # Reusing NewCategory as it has same fields
+      responses:
+        200:
+          description: Category updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Category updated successfully
+                  data:
+                    $ref: '#/components/schemas/Category'
+        404:
+          description: Category not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Category is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /category/delete/{id}:
+    delete:
+      summary: Delete a category by ID
+      tags:
+        - Categories
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the category to delete.
+      responses:
+        200:
+          description: Category deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        404:
+          description: Category not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Category is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/get:
+    get:
+      summary: Get all products with pagination, sorting, and search
+      tags:
+        - Products
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of products to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the products by (e.g., 'name', 'createdAt', 'price').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term to filter products by name or description.
+        - in: query
+          name: categoryName
+          schema:
+            type: string
+          description: Filter products by category name.
+      responses:
+        200:
+          description: List of products fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Products fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalProducts:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/get/{id}:
+    get:
+      summary: Get a single product by ID
+      tags:
+        - Products
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product to retrieve.
+      responses:
+        200:
+          description: Product fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        404:
+          description: Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/add:
+    post:
+      summary: Add a new product
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+      responses:
+        201:
+          description: Product added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product added successfully
+                  data:
+                    $ref: '#/components/schemas/Product'
+        404:
+          description: Category not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Category with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/update/{id}:
+    put:
+      summary: Update an existing product
+      tags:
+        - Products
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct' # Reusing NewProduct as it has same fields
+      responses:
+        200:
+          description: Product updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product updated successfully
+                  data:
+                    $ref: '#/components/schemas/Product'
+        404:
+          description: Product or Category not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product is not found with this ID or Category with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/delete/{id}:
+    delete:
+      summary: Delete a product by ID
+      tags:
+        - Products
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product to delete.
+      responses:
+        200:
+          description: Product deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        404:
+          description: Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/Variant/get:
+    get:
+      summary: Get all product variants with pagination, sorting, and search
+      tags:
+        - Product Variants
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of product variants to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the product variants by (e.g., 'name', 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term to filter product variants by name.
+        - in: query
+          name: shopName
+          schema:
+            type: string
+          description: Filter product variants by shop name.
+        - in: query
+          name: productName
+          schema:
+            type: string
+          description: Filter product variants by product name.
+      responses:
+        200:
+          description: List of product variants fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Product Variants fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalProductVariants:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductVariant'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/Variant/get/{id}:
+    get:
+      summary: Get a single product variant by ID
+      tags:
+        - Product Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product variant to retrieve.
+      responses:
+        200:
+          description: Product variant fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProductVariant'
+        404:
+          description: Product variant not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product Variant with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/Variant/add:
+    post:
+      summary: Add a new product variant
+      tags:
+        - Product Variants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProductVariant'
+      responses:
+        201:
+          description: Product variant added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product Variant added successfully
+                  data:
+                    $ref: '#/components/schemas/ProductVariant'
+        404:
+          description: Shop or Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Shop with the current ID is not found! Please try with a different ID or Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/Variant/update/{id}:
+    put:
+      summary: Update an existing product variant
+      tags:
+        - Product Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product variant to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProductVariant' # Reusing NewProductVariant as it has same fields
+      responses:
+        200:
+          description: Product variant updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product Variant updated successfully
+                  data:
+                    $ref: '#/components/schemas/ProductVariant'
+        404:
+          description: Product variant, Shop or Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product Variant is not found with this ID or Shop with the current ID is not found! Please try with a different ID or Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /product/Variant/delete/{id}:
+    delete:
+      summary: Delete a product variant by ID
+      tags:
+        - Product Variants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the product variant to delete.
+      responses:
+        200:
+          description: Product variant deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProductVariant'
+        404:
+          description: Product variant not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Product Variant is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /customDesign/get:
+    get:
+      summary: Get all custom designs with pagination, sorting, and search
+      tags:
+        - Custom Designs
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of custom designs to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the custom designs by (e.g., 'design_name', 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term to filter custom designs by design name, text, or color.
+        - in: query
+          name: userName
+          schema:
+            type: string
+          description: Filter custom designs by the username of the creator.
+        - in: query
+          name: productName
+          schema:
+            type: string
+          description: Filter custom designs by the name of the base product.
+      responses:
+        200:
+          description: List of custom designs fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Custom Designs fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalCustomDesigns:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomDesign'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /customDesign/get/{id}:
+    get:
+      summary: Get a single custom design by ID
+      tags:
+        - Custom Designs
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the custom design to retrieve.
+      responses:
+        200:
+          description: Custom design fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CustomDesign'
+        404:
+          description: Custom design not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CustomDesign with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /customDesign/add:
+    post:
+      summary: Add a new custom design
+      tags:
+        - Custom Designs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCustomDesign'
+      responses:
+        201:
+          description: Custom design added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: CustomDesign added successfully
+                  data:
+                    $ref: '#/components/schemas/CustomDesign'
+        404:
+          description: User or Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User with the current ID is not found! Please try with a different ID or Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /customDesign/update/{id}:
+    put:
+      summary: Update an existing custom design
+      tags:
+        - Custom Designs
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the custom design to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCustomDesign' # Reusing NewCustomDesign
+      responses:
+        200:
+          description: Custom design updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: CustomDesign updated successfully
+                  data:
+                    $ref: '#/components/schemas/CustomDesign'
+        404:
+          description: Custom design, User or Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CustomDesign is not found with this ID or User with the current ID is not found! Please try with a different ID or Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /customDesign/delete/{id}:
+    delete:
+      summary: Delete a custom design by ID
+      tags:
+        - Custom Designs
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the custom design to delete.
+      responses:
+        200:
+          description: Custom design deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CustomDesign'
+        404:
+          description: Custom design not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CustomDesign is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /shop/get:
+    get:
+      summary: Get all shops with pagination, sorting, and search
+      tags:
+        - Shops
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of shops to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the shops by (e.g., 'name', 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: searchTerm
+          schema:
+            type: string
+          description: Search term to filter shops by name.
+      responses:
+        200:
+          description: List of shops fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Shops fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalShops:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shop'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /shop/get/{id}:
+    get:
+      summary: Get a single shop by ID
+      tags:
+        - Shops
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the shop to retrieve.
+      responses:
+        200:
+          description: Shop fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Shop'
+        404:
+          description: Shop not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Shop with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /shop/add:
+    post:
+      summary: Add a new shop
+      tags:
+        - Shops
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewShop'
+      responses:
+        201:
+          description: Shop added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Shop added successfully
+                  data:
+                    $ref: '#/components/schemas/Shop'
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /shop/update/{id}:
+    put:
+      summary: Update an existing shop
+      tags:
+        - Shops
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the shop to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewShop' # Reusing NewShop as it has same fields
+      responses:
+        200:
+          description: Shop updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Shop updated successfully
+                  data:
+                    $ref: '#/components/schemas/Shop'
+        404:
+          description: Shop or User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Shop is not found with this ID or User with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /shop/delete/{id}:
+    delete:
+      summary: Delete a shop by ID
+      tags:
+        - Shops
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the shop to delete.
+      responses:
+        200:
+          description: Shop deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Shop'
+        404:
+          description: Shop not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Shop is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/get:
+    get:
+      summary: Get all carts with pagination, sorting, and user filtering
+      tags:
+        - Carts
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of carts to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the carts by (e.g., 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: userId
+          schema:
+            type: string
+          description: Filter carts by user ID.
+      responses:
+        200:
+          description: List of Carts fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Carts fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  ToTalCarts:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cart'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/get/{id}:
+    get:
+      summary: Get a single cart by ID
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart to retrieve.
+      responses:
+        200:
+          description: Cart fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        404:
+          description: Cart not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/add:
+    post:
+      summary: Create a new cart for a user
+      tags:
+        - Carts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCart'
+      responses:
+        201:
+          description: Cart created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Cart created successfully
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/update/{id}:
+    put:
+      summary: Update a cart by ID
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCart' # Reusing NewCart as it has same fields
+      responses:
+        200:
+          description: Cart updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Cart updated successfully
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        404:
+          description: Cart or User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart is not found with this ID or User with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/delete/{id}:
+    delete:
+      summary: Delete a cart by ID (and its associated cart items)
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart to delete.
+      responses:
+        200:
+          description: Cart and its items deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        404:
+          description: Cart not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/getByCartId/{id}:
+    get:
+      summary: Get all cart items for a specific cart ID
+      tags:
+        - Cart Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart to retrieve items from.
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of cart items to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the cart items by (e.g., 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+      responses:
+        200:
+          description: List of Cart Items fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Cart Items fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalCartItems:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: cart with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/get/{id}:
+    get:
+      summary: Get a single cart item by ID
+      tags:
+        - Cart Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart item to retrieve.
+      responses:
+        200:
+          description: Cart Item fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart Item not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CartItem with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/product/add:
+    post:
+      summary: Add a product to a cart
+      tags:
+        - Cart Items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 1
+                  description: The quantity of the product to add.
+                cart_id:
+                  type: string
+                  description: The ID of the cart to add the product to.
+                  example: 60d5ec49f8c1b92c8c8e1d29
+                product_id:
+                  type: string
+                  description: The ID of the product to add.
+                  example: 60d5ec49f8c1b92c8c8e1d30
+              required:
+                - quantity
+                - cart_id
+                - product_id
+      responses:
+        201:
+          description: Product added to Cart successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product added to Cart successfully
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart or Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart with the current ID is not found! Please try with a different ID or Product with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/custom-design/add:
+    post:
+      summary: Add a custom design to a cart
+      tags:
+        - Cart Items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 1
+                  description: The quantity of the custom design to add.
+                cart_id:
+                  type: string
+                  description: The ID of the cart to add the custom design to.
+                  example: 60d5ec49f8c1b92c8c8e1d29
+                custom_design_id:
+                  type: string
+                  description: The ID of the custom design to add.
+                  example: 60d5ec49f8c1b92c8c8e1d31
+              required:
+                - quantity
+                - cart_id
+                - custom_design_id
+      responses:
+        201:
+          description: Custom Design added to Cart successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product added to Cart successfully
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart, Custom Design, or Base Product not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart with the current ID is not found! Please try with a different ID or Custom Design with the current ID is not found! Please try with a different ID or Product base for the CustomDesign not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/update/{id}:
+    put:
+      summary: Update the quantity of a cart item
+      tags:
+        - Cart Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart item to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 2
+                  description: The new quantity for the cart item.
+              required:
+                - quantity
+      responses:
+        200:
+          description: CartItem updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: CartItem updated successfully
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart Item not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CartItem is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /cart/CartItem/delete/{id}:
+    delete:
+      summary: Delete a cart item from a cart
+      tags:
+        - Cart Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the cart item to delete.
+      responses:
+        200:
+          description: CartItem deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        404:
+          description: Cart Item not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: CartItem is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/get:
+    get:
+      summary: Get all orders with pagination, sorting, and filtering
+      tags:
+        - Orders
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of orders to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: order_date
+          description: Field to sort the orders by (e.g., 'order_date', 'total_amount').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [Done, Processing, Cancel]
+          description: Filter orders by their status.
+        - in: query
+          name: userId
+          schema:
+            type: string
+          description: Filter orders by the ID of the user who placed them.
+      responses:
+        200:
+          description: List of Orders fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Orders fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalOrders:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/get/{id}:
+    get:
+      summary: Get a single order by ID
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the order to retrieve.
+      responses:
+        200:
+          description: Order fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Order'
+        404:
+          description: Order not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Order with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/add:
+    post:
+      summary: Create a new order from a user's cart
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewOrder'
+      responses:
+        201:
+          description: Order created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Order created successfully
+                  order:
+                    $ref: '#/components/schemas/Order'
+                  orderItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderItem'
+        400:
+          description: Bad Request (e.g., cart is empty).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Cart is empty. Please add items to cart.
+        404:
+          description: User or Cart not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User with the current ID is not found! Please try with a different ID or Cart with the current userId is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/update/{id}:
+    put:
+      summary: Update an existing order by ID
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the order to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_date:
+                  type: string
+                  format: date
+                  description: The new date for the order (YYYY-MM-DD).
+                  example: "2025-07-01"
+                status:
+                  type: string
+                  enum: [Done, Processing, Cancel]
+                  description: The new status of the order.
+                  example: Done
+                shipping_address:
+                  type: string
+                  description: The updated shipping address.
+                  example: "456 Oak Avenue, City, Country"
+                payment_method:
+                  type: string
+                  enum: [Online, Physical]
+                  description: The updated payment method.
+                  example: Physical
+              # total_amount is calculated server-side, not updated directly
+              required: [] # Fields are optional for update, but could be specific here if needed
+      responses:
+        200:
+          description: Order updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Order updated successfully
+                  data:
+                    $ref: '#/components/schemas/Order'
+        404:
+          description: Order not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Order is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/delete/{id}:
+    delete:
+      summary: Delete an order by ID (and its associated order items)
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the order to delete.
+      responses:
+        200:
+          description: Order and its items deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    $ref: '#/components/schemas/Order'
+        404:
+          description: Order not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Order is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/orderItem/get:
+    get:
+      summary: Get all order items with pagination, sorting, and order filtering
+      tags:
+        - Order Items
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of order items to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the order items by (e.g., 'createdAt').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: orderId
+          schema:
+            type: string
+          description: Filter order items by the ID of their parent order.
+      responses:
+        200:
+          description: List of Order Items fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Orders Items fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalOrdersItems:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderItem'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /order/orderItem/get/{id}:
+    get:
+      summary: Get a single order item by ID
+      tags:
+        - Order Items
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the order item to retrieve.
+      responses:
+        200:
+          description: Order Item fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/OrderItem'
+        404:
+          description: Order Item not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: OrderItem with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/get:
+    get:
+      summary: Get all payments with pagination, sorting, and filtering
+      tags:
+        - Payments
+      parameters:
+        - in: query
+          name: currentPage
+          schema:
+            type: integer
+            default: 1
+          description: Current page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of payments to return per page.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort the payments by (e.g., 'createdAt', 'payment_date').
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order ('asc' for ascending, 'desc' for descending).
+        - in: query
+          name: paymentStatus
+          schema:
+            type: string
+            enum: [Processing, Done, Cancel]
+          description: Filter payments by their status.
+        - in: query
+          name: orderId
+          schema:
+            type: string
+          description: Filter payments by the associated order ID.
+      responses:
+        200:
+          description: List of Payments fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List of Payments fetched successfully
+                  currentPage:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  totalPayments:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/get/{id}:
+    get:
+      summary: Get a single payment by ID
+      tags:
+        - Payments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the payment to retrieve.
+      responses:
+        200:
+          description: Payment fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        404:
+          description: Payment not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Payment with the current ID is not found! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/add:
+    post:
+      summary: Create a new payment for an order
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPayment'
+      responses:
+        201:
+          description: Payment added successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Payment added successfully
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        404:
+          description: Order not found or canceled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Order with the current ID is not found or the order is cancel ! Please try with a different ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/update/{id}:
+    put:
+      summary: Update the status or method of an existing payment
+      tags:
+        - Payments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the payment to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payment_status:
+                  type: string
+                  enum: [Processing, Done, Cancel]
+                  description: The new status of the payment.
+                  example: Done
+                payment_method:
+                  type: string
+                  enum: [Online, Physical]
+                  description: The new payment method.
+                  example: Physical
+              required: [] # Fields are optional for update, but could be specific if needed
+      responses:
+        200:
+          description: Payment updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Payment updated successfully
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        404:
+          description: Payment not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Payment is not found with this ID
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/vnpay/url:
+    get:
+      summary: Generate a VNPAY payment URL
+      tags:
+        - Payments
+      parameters:
+        - in: query
+          name: paymentId
+          required: true
+          schema:
+            type: string
+          description: The ID of the payment to generate a VNPAY URL for.
+      responses:
+        201:
+          description: VNPAY URL generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: string
+                    description: The VNPAY payment URL.
+                    example: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=..."
+        400:
+          description: Payment not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: payment not found
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+  /payment/vnpay/return:
+    get:
+      summary: Handle VNPAY return (callback)
+      tags:
+        - Payments
+      description: This endpoint is called by VNPAY after a payment transaction. It handles the payment verification and redirects to a frontend success/fail URL.
+      parameters:
+        - in: query
+          name: vnp_Amount
+          schema:
+            type: string
+            description: Amount paid.
+        - in: query
+          name: vnp_BankCode
+          schema:
+            type: string
+            description: Bank code.
+        - in: query
+          name: vnp_BankTranNo
+          schema:
+            type: string
+            description: Bank transaction number.
+        - in: query
+          name: vnp_CardType
+          schema:
+            type: string
+            description: Card type.
+        - in: query
+          name: vnp_OrderInfo
+          schema:
+            type: string
+            description: Order information (this is your `payment._id`).
+        - in: query
+          name: vnp_PayDate
+          schema:
+            type: string
+            description: Payment date.
+        - in: query
+          name: vnp_ResponseCode
+          schema:
+            type: string
+            description: VNPAY response code. '00' indicates success.
+        - in: query
+          name: vnp_TmnCode
+          schema:
+            type: string
+            description: TmnCode from VNPAY.
+        - in: query
+          name: vnp_TransactionNo
+          schema:
+            type: string
+            description: VNPAY transaction number.
+        - in: query
+          name: vnp_TxnRef
+          schema:
+            type: string
+            description: Transaction reference.
+        - in: query
+          name: vnp_SecureHashType
+          schema:
+            type: string
+            description: Hash type.
+        - in: query
+          name: vnp_SecureHash
+          schema:
+            type: string
+            description: Secure hash for verification.
+      responses:
+        302:
+          description: Redirects to frontend success or failure URL.
+        500:
+          description: Payment verification failed or internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: payment fail or payment not found in database
+        404:
+          description: Payment not found in database.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: payment not found in database

@@ -11,17 +11,27 @@ const getAllProduct = async (req, res, next) => {
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
     const searchTerm = req.query.searchTerm;
+    const categoryName = req.query.categoryName;
 
-    const skip = (currentPage - 1) * limit;
     let query = {};
     if (searchTerm) {
-      query = {
-        $or: [
-          { name: { $regex: searchTerm, $options: "i" } },
-          { description: { $regex: searchTerm, $options: "i" } },
-        ],
-      };
+      query.$or = [
+        { name: { $regex: searchTerm, $options: "i" } },
+        { description: { $regex: searchTerm, $options: "i" } },
+      ];
+      // query = {
+      //   $or: [
+      //     { name: { $regex: searchTerm, $options: "i" } },
+      //     { description: { $regex: searchTerm, $options: "i" } },
+      //   ],
+      // };
     }
+    if (categoryName) {
+      const category = await Category.findOne({ name: categoryName });
+      query.category_id = category._id;
+    }
+
+    const skip = (currentPage - 1) * limit;
     const totalProducts = await Product.countDocuments(query);
     const totalPages = Math.ceil(totalProducts / limit);
     const sortObj = {};
@@ -125,6 +135,7 @@ const updateProduct = async (req, res, next) => {
       { name, description, price, stock_quantity, image_url, category_id },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedProduct) {
@@ -172,14 +183,26 @@ const getAllProductVariant = async (req, res, next) => {
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
     const searchTerm = req.query.searchTerm;
+    const shopName = req.query.shopName;
+    const productName = req.query.productName;
 
-    const skip = (currentPage - 1) * limit;
     let query = {};
     if (searchTerm) {
-      query = {
-        $or: [{ name: { $regex: searchTerm, $options: "i" } }],
-      };
+      query.$or = [{ name: { $regex: searchTerm, $options: "i" } }];
+      // query = {
+      //   $or: [{ name: { $regex: searchTerm, $options: "i" } }],
+      // };
     }
+    if (shopName) {
+      const shop = await Shop.findOne({ name: shopName });
+      query.shop_id = shop._id;
+    }
+    if (productName) {
+      const product = await Product.findOne({ name: productName });
+      query.product_id = product._id;
+    }
+
+    const skip = (currentPage - 1) * limit;
     const totalProductVariants = await ProductVariant.countDocuments(query);
     const totalPages = Math.ceil(totalProductVariants / limit);
     const sortObj = {};
@@ -297,6 +320,7 @@ const updateProductVariant = async (req, res, next) => {
       { name, platform, shop_id, product_id },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedProductVariant) {

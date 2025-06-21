@@ -14,9 +14,7 @@ const getAllShops = async (req, res, next) => {
     let query = {};
     if (searchTerm) {
       query = {
-        $or: [
-          { name: { $regex: searchTerm, $options: "i" } },
-        ],
+        $or: [{ name: { $regex: searchTerm, $options: "i" } }],
       };
     }
     const totalShops = await Shop.countDocuments(query);
@@ -117,6 +115,7 @@ const updateShop = async (req, res, next) => {
       { name, platform, user_id },
       {
         new: true,
+        runValidators: true,
       }
     );
     if (!updatedShop) {
